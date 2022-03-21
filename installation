@@ -250,7 +250,9 @@ GOOGLE_MAPS_API_KEY=
 ERROR_EMAIL=
 
 # If you have a reverse proxy you can set its ip here
+# and enable local download
 TRUSTED_PROXIES=10.0.1.1
+LOCAL_DOWNLOAD=FALSE
 
 NINJA_ENVIRONMENT="selfhost"
 
