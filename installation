@@ -6,25 +6,47 @@
 sudo apt update && sudo apt upgrade -y
 
 # optional step vor QEMU VM
-sudo apt install qemu-guest-agent
+sudo apt install qemu-guest-agent -y
 
 # install dependencies
-# do we really need curl, git, vim, maridb-client? 
-sudo apt install php php-{fpm,bcmath,ctype,fileinfo,json,mbstring,pdo,tokenizer,xml,curl,zip,gmp,gd,mysqli} mariadb-server mariadb-client curl git nginx vim composer -y
+# At the time of writing this, Ubuntu 22.04 uses PHP 8.1
 
-# if we visit http://yourIP , you should see a running Apache page. https://yourIP will not work you need to use http instead of https for now!
+# install php
+sudo apt install php-fpm -y
+
+# install php extensions
+sudo apt install php-{bcmath,ctype,fileinfo,json,mbstring,pdo,tokenizer,xml,curl,zip,gmp,gd,mysqli} -y
+
+# check PHP
+php -v
+
+# install dependencies
+# do we really need maridb-client? 
+sudo apt install mariadb-server mariadb-client curl git nginx composer -y
+
+# if we visit http://yourIP , you should see the nginx welcome page. https://yourIP will not work you need to use http instead of https for now!
+
+# make sure NGINX is running and not apache
+sudo systemctl stop apache2
+sudo systemctl disable apache2
+
+# enable nginx at boot
+sudo systemctl enable --now nginx
+
+# delete the nginx default site and reload. the welcome page should now be offline
+sudo rm /etc/nginx/sites-enabled/default
+sudo systemctl reload nginx
 
 # Check if php-fpm is running. You should see something like active: active (running)
-systemctl status php7.4-fpm
+systemctl status php8.1-fpm
 # press q to quit
 
-# enable mariadb
+# enable mariadb and start it 
 sudo systemctl enable --now mariadb
 
 # This command will take you through a guided wizard to initialize the SQL database. Use default values written in capital letters
 sudo mysql_secure_installation
 # Enter,  insert a password for the root account, repeat, Enter, Enter, Enter, Enter. You should see "Thanks for using MariaDB"
-
 
 # login to the database
 sudo mysql -u root -p
@@ -51,12 +73,12 @@ FLUSH PRIVILEGES;
 # exit the db
 exit
 # You should see Bye
-      
 
+   
 # create config for webpage
 sudo nano /etc/nginx/sites-available/invoiceninja.conf
 
-# insert this:
+# insert this but remember that you need to set the correct fpm path:
 
 ##
 # You should look at the following URL's in order to grasp a solid understanding
@@ -102,7 +124,7 @@ server {
 
 
         # Add index.php to the list if you are using PHP
-        index index.html index.htm index.php index.nginx-debian.html;
+        index index.html index.htm index.php;
 
 	charset utf-8;
 	client_max_body_size 20M;
@@ -126,7 +148,8 @@ server {
                include snippets/fastcgi-php.conf;
         
                # With php-fpm (or other unix sockets):
-               fastcgi_pass unix:/run/php/php7.4-fpm.sock;
+               # Edit this to the correct php sock. In this example 8.1!
+               fastcgi_pass unix:/run/php/php8.1-fpm.sock;
                # With php-cgi (or other tcp sockets):
         #       fastcgi_pass 127.0.0.1:9000;
         }
@@ -161,20 +184,14 @@ server {
 
 # save and exit
 
-# If php7.4 is not the used php version anymore, you need to check the FastCGI socket path. 
-# As of march 2022, Ubuntu still uses php7.4 and you don't need to change anything.
+# If php8.1 is not the used php version anymore, you need to check the FastCGI socket path. 
+# As of march 2022, Ubuntu still uses php8.1 and you don't need to change anything.
+# This config listenes to all server names (because it will be put behind a proxy) but you can set a
+# server name instead of "_"
 
 # Check if syntax of your file is ok
 sudo nginx -t
 
-# make sure NGINX is running and not apache
-sudo systemctl stop apache2
-sudo systemctl disable apache2
-sudo systemctl enable --now nginx
-
-# delete the nginx default site and reload. Webpage should now be offline
-sudo rm /etc/nginx/sites-enabled/default
-sudo systemctl reload nginx
 
 # make install dir
 sudo mkdir /usr/share/nginx/invoiceninja && cd /usr/share/nginx/invoiceninja
@@ -183,7 +200,7 @@ sudo mkdir /usr/share/nginx/invoiceninja && cd /usr/share/nginx/invoiceninja
 # Right click the link to the zip file and copy the download link
 
 # Download the zip
-sudo wget https://github.com/invoiceninja/invoiceninja/releases/download/v5.3.73/invoiceninja.zip
+sudo wget https://github.com/invoiceninja/invoiceninja/releases/download/v5.4.4/invoiceninja.zip
 
 # unzip and remove the zip file
 sudo unzip invoiceninja.zip
@@ -263,9 +280,25 @@ PHANTOMJS_SECRET=secret
 
 UPDATE_SECRET=secret
 
+DELETE_PDF_DAYS=60
+DELETE_BACKUP_DAYS=60
+
 
 COMPOSER_AUTH='{"github-oauth": {"github.com": "${{ secrets.GITHUB_TOKEN }}"}}'
 SENTRY_LARAVEL_DSN=https://39389664f3f14969b4c43dadda00a40b@sentry2.invoicing.co/5
+
+GOOGLE_PLAY_PACKAGE_NAME=
+APPSTORE_PASSWORD=
+
+MICROSOFT_CLIENT_ID=
+MICROSOFT_CLIENT_SECRET=
+MICROSOFT_REDIRECT_URI=
+
+APPLE_CLIENT_ID=
+APPLE_CLIENT_SECRET=
+APPLE_REDIRECT_URI=
+
+
 
 # save and exit
 
