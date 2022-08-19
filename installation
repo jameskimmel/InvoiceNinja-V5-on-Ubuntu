@@ -15,7 +15,7 @@ sudo apt install qemu-guest-agent -y
 sudo apt install php-fpm -y
 
 # install php extensions
-sudo apt install php-{bcmath,ctype,fileinfo,json,mbstring,pdo,tokenizer,xml,curl,zip,gmp,gd,mysqli} -y
+sudo apt install php-{bcmath,ctype,fileinfo,json,mbstring,pdo,tokenizer,xml,curl,zip,gmp,gd,mysqli,mysql} -y
 
 # check PHP
 php -v
