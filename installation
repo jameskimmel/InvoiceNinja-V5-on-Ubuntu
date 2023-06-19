@@ -267,7 +267,7 @@ GOOGLE_MAPS_API_KEY=
 ERROR_EMAIL=
 
 # If you have a reverse proxy you can set its ip here
-TRUSTED_PROXIES=10.0.1.1
+TRUSTED_PROXIES='10.0.1.1'
 
 NINJA_ENVIRONMENT="selfhost"
 
