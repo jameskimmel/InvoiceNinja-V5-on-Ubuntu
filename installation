@@ -422,38 +422,3 @@ server {
 
 
 # Next step would be setting up supervisor to get rid of the queque warning
-# This is untested yet. You should better not use this :)
-
-# optimize performance by using Laravel supervisor. This guide requires root access. If you don't have that, here is more documentation:
-# https://invoiceninja.github.io/docs/self-host-installation/#final-setup-steps
-
-# install supervisor
-sudo apt-get install supervisor
-
-
-# configure supervisor
-sudo nano /etc/supervisor/conf.d/laravel-worker.conf
-
-[program:laravel-worker]
-process_name=%(program_name)s_%(process_num)02d
-command=php /usr/share/nginx/invoiceninja/artisan queue:work sqs --sleep=3 --tries=3 --max-time=3600
-autostart=true
-autorestart=true
-stopasgroup=true
-killasgroup=true
-user=forge
-numprocs=8
-redirect_stderr=true
-stdout_logfile=/var/log/supervisor.log
-stopwaitsecs=3600
-
-# save and exit
-
-# start supervisor
-sudo supervisorctl reread
-sudo supervisorctl update
-sudo supervisorctl start laravel-worker:*
-
-# edit .env
-QUEUE_CONNECTION=database
-INTERNAL_QUEUE_ENABLED=false
