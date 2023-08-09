@@ -5,7 +5,7 @@
 # update and upgrade
 sudo apt update && sudo apt upgrade -y
 
-# optional step vor QEMU VM
+# optional step for QEMU VM
 sudo apt install qemu-guest-agent -y
 
 # install dependencies
