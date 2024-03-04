@@ -1,10 +1,9 @@
-# This is a basic tutorial for a
-# default installation of a InvoiceNinja instance on Ubuntu
-# You can also find this and report a bug on https://github.com/jameskimmel/InvoiceNinja-V5-on-Ubuntu
+This is a basic tutorial for a default installation of a InvoiceNinja instance on Ubuntu
 
-# update and upgrade
+update and upgrade 
+```bash
 sudo apt update && sudo apt upgrade -y
-
+```
 # optional step for QEMU VM
 sudo apt install qemu-guest-agent -y
 
