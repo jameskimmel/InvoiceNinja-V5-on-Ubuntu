@@ -419,6 +419,43 @@ server {
 # You are done and hopefully everything is up and running!
 
 
+# Optional: optimize the artisan queque
+
+sudo apt-get install supervisor  
+cd /etc/supervisor/conf.d  
+cd /etc/supervisor/conf.d  
+sudo nano invoiceninja-worker.conf
+
+# insert this
+
+[program:invoiceninja-worker]
+process_name=%(program_name)s_%(process_num)02d
+command=php /usr/share/nginx/invoiceninja/artisan queue:work --sleep=3 --tries=3 --max-time=3600
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+user=www-data
+numprocs=8
+redirect_stderr=true
+stdout_logfile=/var/log/invoiceninja-worker.log
+stopwaitsecs=3600
 
 
-# Next step would be setting up supervisor to get rid of the queque warning
+
+cd /var/log
+sudo touch invoiceninja-worker.log
+sudo chown www-data:www-data invoiceninja-worker.log
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl start invoiceninja-worker:*
+sudo supervisorctl status
+sudo nano /usr/share/nginx/invoiceninja/.env
+
+# insert this
+QUEUE_CONNECTION=database
+
+cd /usr/share/nginx/invoiceninja/
+sudo -u www-data php artisan optimize
+sudo -u www-data php artisan queue:restart
+
