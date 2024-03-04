@@ -491,9 +491,7 @@ redirect_stderr=true
 stdout_logfile=/var/log/invoiceninja-worker.log
 stopwaitsecs=3600
 ```
-
 Then do
-
 ```bash
 cd /var/log
 sudo touch invoiceninja-worker.log
@@ -504,7 +502,7 @@ sudo supervisorctl start invoiceninja-worker:*
 sudo supervisorctl status
 sudo nano /usr/share/nginx/invoiceninja/.env
 ```
-# insert this
+insert this
 ```bash
 QUEUE_CONNECTION=database
 
