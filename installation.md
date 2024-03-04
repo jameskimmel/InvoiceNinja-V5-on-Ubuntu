@@ -491,7 +491,9 @@ redirect_stderr=true
 stdout_logfile=/var/log/invoiceninja-worker.log
 stopwaitsecs=3600
 ```
+
 Then do
+
 ```bash
 cd /var/log
 sudo touch invoiceninja-worker.log
