@@ -4,81 +4,108 @@ update and upgrade
 ```bash
 sudo apt update && sudo apt upgrade -y
 ```
-# optional step for QEMU VM
+ptional step for QEMU VM
+```bash
 sudo apt install qemu-guest-agent -y
+```
+install dependencies  
+At the time of writing this, Ubuntu 22.04 uses PHP 8.1
 
-# install dependencies
-# At the time of writing this, Ubuntu 22.04 uses PHP 8.1
-
-# install php
+nstall php
+```bash
 sudo apt install php-fpm -y
-
-# install php extensions
+```
+install php extensions
+```bash
 sudo apt install php-{bcmath,ctype,fileinfo,json,mbstring,pdo,tokenizer,xml,curl,zip,gmp,gd,mysqli,mysql} -y
-
-# check PHP
+```
+check PHP
+```bash
 php -v
-
-# install dependencies
-# do we really need maridb-client? 
+```
+#nstall dependencies
+do we really need maridb-client? 
+```bash
 sudo apt install mariadb-server mariadb-client curl git nginx composer -y
+```
+if we visit http://yourIP , you should see the nginx welcome page. https://yourIP will not work you need to use http instead of https for now!
 
-# if we visit http://yourIP , you should see the nginx welcome page. https://yourIP will not work you need to use http instead of https for now!
-
-# make sure NGINX is running and not apache
+make sure NGINX is running and not apache
+```bash
 sudo systemctl stop apache2
 sudo systemctl disable apache2
-
-# enable nginx at boot
+```
+enable nginx at boot
+```bash
 sudo systemctl enable --now nginx
-
-# delete the nginx default site and reload. the welcome page should now be offline
+```
+delete the nginx default site and reload. the welcome page should now be offline
+```bash
 sudo rm /etc/nginx/sites-enabled/default
 sudo systemctl reload nginx
-
-# Check if php-fpm is running. You should see something like active: active (running)
+```
+Check if php-fpm is running. You should see something like active: active (running)
+```bash
 systemctl status php8.1-fpm
-# press q to quit
+```
+press q to quit
 
-# enable mariadb and start it 
+enable mariadb and start it 
+```bash
 sudo systemctl enable --now mariadb
-
-# This command will take you through a guided wizard to initialize the SQL database. Use default values written in capital letters
+```
+This command will take you through a guided wizard to initialize the SQL database. Use default values written in capital letters
+```bash
 sudo mysql_secure_installation
-# Enter,  insert a password for the root account, repeat, Enter, Enter, Enter, Enter. You should see "Thanks for using MariaDB"
+```
+Enter,  insert a password for the root account, repeat, Enter, Enter, Enter, Enter. You should see "Thanks for using MariaDB"
 
-# login to the database
+login to the database
+```bash
 sudo mysql -u root -p
-# enter the password you just set
+```
+enter the password you just set
 
-# you should see MariaDB [(none)]> on the left of your cursor
+you should see MariaDB [(none)]> on the left of your cursor
 
-# create database ninjadb
+create database ninjadb
+```mysql
 CREATE SCHEMA `ninjadb` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
-# You should see Query OK, 1 row affected
+```
+You should see Query OK, 1 row affected
 
-# create the user ninja and set a Password
+create the user ninja and set a Password
+```mysql
 CREATE USER 'ninja'@'localhost' IDENTIFIED BY 'Password';
-# You should see Query OK, 0 rows affected
+```
+You should see Query OK, 0 rows affected
 
-# give all permissions for to the local ninja user to access ninjadb
+give all permissions for to the local ninja user to access ninjadb
+```mysql
 GRANT ALL PRIVILEGES ON ninjadb.* TO 'ninja'@'localhost';
-# You should see Query OK, 0 rows affected
+```
+You should see Query OK, 0 rows affected
 
-# reload privileges
+reload privileges
+```mysql
 FLUSH PRIVILEGES;
-# You should see Query OK, 0 rows affected
+```
+You should see Query OK, 0 rows affected
 
-# exit the db
+exit the db
+```mysql
 exit
-# You should see Bye
+```
+You should see Bye
 
    
-# create config for webpage
+create config for webpage
+```bash
 sudo nano /etc/nginx/sites-available/invoiceninja.conf
+```
+insert this but remember that you need to set the correct fpm path:
 
-# insert this but remember that you need to set the correct fpm path:
-
+```
 ##
 # You should look at the following URL's in order to grasp a solid understanding
 # of Nginx configuration files in order to fully unleash the power of Nginx.
@@ -180,46 +207,53 @@ server {
 
 }
 
+```
+save and exit
 
-# save and exit
+If php8.1 is not the used php version anymore, you need to check the FastCGI socket path. 
+As of march 2022, Ubuntu still uses php8.1 and you don't need to change anything.
+This config listenes to all server names (because it will be put behind a proxy) but you can set a
+server name instead of "_"
 
-# If php8.1 is not the used php version anymore, you need to check the FastCGI socket path. 
-# As of march 2022, Ubuntu still uses php8.1 and you don't need to change anything.
-# This config listenes to all server names (because it will be put behind a proxy) but you can set a
-# server name instead of "_"
-
-# Check if syntax of your file is ok
+Check if syntax of your file is ok
+```bash
 sudo nginx -t
+```
 
-
-# make install dir
+make install dir
+```bash
 sudo mkdir /usr/share/nginx/invoiceninja && cd /usr/share/nginx/invoiceninja
+```
+Find latest version here https://github.com/invoiceninja/invoiceninja/releases
+Right click the link to the zip file and copy the download link
 
-# Find latest version here https://github.com/invoiceninja/invoiceninja/releases
-# Right click the link to the zip file and copy the download link
-
-# Download the zip
+Download the zip
+```bash
 sudo wget https://github.com/invoiceninja/invoiceninja/releases/download/v5.4.4/invoiceninja.zip
-
-# unzip and remove the zip file
+```
+unzip and remove the zip file
+```bash
 sudo unzip invoiceninja.zip
 sudo rm invoiceninja.zip
+```
 
-
-# if you wanna use snappdf instead of the cloud service phantomPDF, we need some
-# dependancies for snappdf
-# more info https://github.com/beganovich/snappdf#headless-chrome-doesnt-launch-on-unix
+if you wanna use snappdf instead of the cloud service phantomPDF, we need some
+dependancies for snappdf
+more info https://github.com/beganovich/snappdf#headless-chrome-doesnt-launch-on-unix
+```bash
 sudo apt install libgbm-dev libxshmfence-dev ca-certificates fonts-liberation libappindicator3-0.1-cil libasound2 libatk-bridge2.0-0 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgbm1 libgcc-s1 libglib2.0-0 libgtk-3-0 libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 lsb-release wget xdg-utils
-
-# Copy the example .env 
+```
+Copy the example .env 
+```bash
 sudo cp /usr/share/nginx/invoiceninja/.env.example /usr/share/nginx/invoiceninja/.env
-
-# Now we need to edit your .env file
-# you only need to edit one line (or two if you have a revers proxy) everything else we can setup later in the webgui setup
+```
+Now we need to edit your .env file
+you only need to edit one line (or two if you have a revers proxy) everything else we can setup later in the webgui setup
+```bash
 sudo nano /usr/share/nginx/invoiceninja/.env
+```
 
-
-
+```bash
 APP_NAME="Invoice Ninja"
 APP_ENV=production
 APP_KEY=base64:RCPMPb5yWnrE2+rb+R4xd5XQ0qQJ5vwy1lNSvsmB6g=
@@ -264,13 +298,16 @@ REQUIRE_HTTPS="false"
 
 GOOGLE_MAPS_API_KEY=
 ERROR_EMAIL=
+```
 
-# If you have a reverse proxy you can set its ip here
+If you have a reverse proxy you can set its ip here
+```bash
 TRUSTED_PROXIES='10.0.1.1'
 
 NINJA_ENVIRONMENT="selfhost"
-
-# change this to snappdf
+```
+change this to snappdf
+```bash
 #options - snappdf / phantom / hosted_ninja
 PDF_GENERATOR=snappdf
 
@@ -298,92 +335,106 @@ APPLE_CLIENT_SECRET=
 APPLE_REDIRECT_URI=
 
 
+```
+save and exit
 
-# save and exit
-
-# set permissions to the nginx user
+set permissions to the nginx user
+```bash
 sudo chown -R www-data:www-data /usr/share/nginx/invoiceninja
-
-# edit crontab to run Laravel Scheduler every minute
+```
+edit crontab to run Laravel Scheduler every minute
+```bash
 sudo -u www-data crontab -e
-
-# insert this at the end:
+```
+insert this at the end:
+```bash
 * * * * * cd /usr/share/nginx/invoiceninja/ && php artisan schedule:run >> /dev/null 2>&1
-# save and exit
+```
+save and exit
 
-# enable webpage
+enable webpage
+```bash
 sudo ln -s /etc/nginx/sites-available/invoiceninja.conf /etc/nginx/sites-enabled/
+```
 
-
-# test the invoiceninja.conf
-# this should give you no error
+test the invoiceninja.conf
+this should give you no error
+```bash
 sudo nginx -t
-
-# reload nginx
+```
+reload nginx
+```bash
 sudo systemctl reload nginx
+```
 
 
+The next steps are very much dependant if you use InvoiceNinja behind a proxy or not or if you only use invoiceninja local without a cert.  
+If you don't use it behind a proxy, you need to install certbot on the InvoiceNinja host.  
+If you use it behind a proxy, you configure certbot on the proxy  
+If you don't use https, you don't have to do anything  
 
-# The next steps are very much dependant if you use InvoiceNinja behind a proxy or not or if you only use invoiceninja local without a cert.
-# If you don't use it behind a proxy, you need to install certbot on the InvoiceNinja host.
-# If you use it behind a proxy, you configure certbot on the proxy
-# If you don't use https, you don't have to do anything
+visit our http://ipofyourhost/setup address to setup InvoiceNinja
 
-# visit our http://ipofyourhost/setup address to setup InvoiceNinja
+For URL you set the desired URL or the IP address if you use it local only  
+HTTPS should be require unless you use a reverse proxy  
+Test PDF should show success  
 
-# For URL you set the desired URL or the IP address if you use it local only
-# HTTPS should be require unless you use a reverse proxy
-# Test PDF should show success
+Insert the database credentials  
+```bash
+localhost
+3306
+ninjadb
+ninja
+```
+The password you set during the DB setup  
 
-# Insert the database credentials
-# localhost
-# 3306
-# ninjadb
-# ninja
-# The password you set during the DB setup
+Test PDF should show success
 
-# Test PDF should show success
+If you wanna send mail, you can set SMTP instead of Log  
+Example config for Office 365  
+```bash
+mail@domain.com
+mail@domain.com
+mail@domain.com
+smtp.office365.com
+587
+STARTTLS
+Password
+```
+Send test email shoud work  
 
-# If you wanna send mail, you can set SMTP instead of Log
-# Example config for Office 365
-# mail@domain.com
-# mail@domain.com
-# mail@domain.com
-# smtp.office365.com
-# 587
-# STARTTLS
-# Password
+Create a User Account, agree to the terms and click submit  
+Now this could take some time. You should be redirected to the URL you defined earlier.  
+Don't leave the page and have some patience. If the page is just gray, try to disable pihole or any other adblockers  
+Your browser redirect will probably point to https and because we have not setup nginx to listen on https yet the site is unreachable.   
+In this case setup certbot first before you try to login.  
 
-# Send test email shoud work
+install and run certbot to get a cert  
 
-# Create a User Account, agree to the terms and click submit
-# Now this could take some time. You should be redirected to the URL you defined earlier.
-# Don't leave the page and have some patience. If the page is just gray, try to disable pihole or any other adblockers
-# Your browser redirect will probably point to https and because we have not setup nginx to listen on https yet the site is unreachable. 
-# In this case setup certbot first before you try to login.
-
-# install and run certbot to get a cert
-
-# install snapd
+install snapd  
+```bash
 sudo apt install snapd
-
-# update snapd
+```
+update snapd
+```bash
 sudo snap install core
 sudo snap refresh core
-
-# install certbot
+```
+install certbot
+```bash
 sudo snap install --classic certbot
-
-# create a cert
+```
+create a cert
+```bash
 sudo certbot --nginx
+```
+this will lead you trough the setup process. If something fails, it is probably because you forgot to set the public dns or your firewall blocks port 80 to certbot
+Anyway, there are a lot of good tutorials online how to setup certbot.
+Certbot automatically changes your NGINX .conf file to listen on port 443
 
-# this will lead you trough the setup process. If something fails, it is probably because you forgot to set the public dns or your firewall blocks port 80 to certbot
-# Anyway, there are a lot of good tutorials online how to setup certbot.
-# Certbot automatically changes your NGINX .conf file to listen on port 443
-
-# if you run invoiceninja behind a proxy, here is a sample config.
-# otherwise you can ignore this
-
+if you run invoiceninja behind a proxy, here is a sample config.
+otherwise you can ignore this
+```bash
 server {
     server_name ninja.domain.com;
 
@@ -414,19 +465,19 @@ server {
 }
 
 
+```
+You are done and hopefully everything is up and running!
 
-# You are done and hopefully everything is up and running!
 
-
-# Optional: optimize the artisan queque
-
+Optional: optimize the artisan queque
+```bash
 sudo apt-get install supervisor  
 cd /etc/supervisor/conf.d  
 cd /etc/supervisor/conf.d  
 sudo nano invoiceninja-worker.conf
-
-# insert this
-
+```
+insert this
+```bash
 [program:invoiceninja-worker]
 process_name=%(program_name)s_%(process_num)02d
 command=php /usr/share/nginx/invoiceninja/artisan queue:work --sleep=3 --tries=3 --max-time=3600
@@ -439,9 +490,9 @@ numprocs=8
 redirect_stderr=true
 stdout_logfile=/var/log/invoiceninja-worker.log
 stopwaitsecs=3600
-
-
-
+```
+Then do
+```bash
 cd /var/log
 sudo touch invoiceninja-worker.log
 sudo chown www-data:www-data invoiceninja-worker.log
@@ -450,11 +501,13 @@ sudo supervisorctl update
 sudo supervisorctl start invoiceninja-worker:*
 sudo supervisorctl status
 sudo nano /usr/share/nginx/invoiceninja/.env
-
+```
 # insert this
+```bash
 QUEUE_CONNECTION=database
 
 cd /usr/share/nginx/invoiceninja/
 sudo -u www-data php artisan optimize
 sudo -u www-data php artisan queue:restart
-
+```
+Done :)
