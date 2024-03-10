@@ -11,7 +11,7 @@ sudo apt install qemu-guest-agent -y
 install dependencies  
 At the time of writing this, Ubuntu 22.04 uses PHP 8.1
 
-nstall php
+install php
 ```bash
 sudo apt install php-fpm -y
 ```
@@ -23,8 +23,7 @@ check PHP
 ```bash
 php -v
 ```
-#nstall dependencies
-do we really need maridb-client? 
+install dependencies  
 ```bash
 sudo apt install mariadb-server mariadb-client curl git nginx composer -y
 ```
