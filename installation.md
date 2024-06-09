@@ -10,8 +10,8 @@ At the time of writing this, Ubuntu 22.04 uses PHP 8.1
 Since InvoiceNinja v5.9.0, at least PHP 8.2 is needed. 
 
 We need to add Ondrej PHP Package to get a newer PHP Version.
-PHP 8.3.7 is the current version for June 2024, but Invoice Ninja currently supports 8.2 
-So we will go with 8.2 for now. 
+PHP 8.3.7 is the current version for June 2024. Invoice Ninja currently supports 8.2 
+
 
 
 ```bash
@@ -20,17 +20,26 @@ sudo add-apt-repository ppa:ondrej/php -y
 
 install php
 ```bash
-sudo apt install php8.2-fpm -y
+sudo apt install php-fpm -y
 ```
 
 install php extensions
 ```bash
-sudo apt install php8.2-{bcmath,mbstring,xml,curl,zip,gmp,gd,mysql} -y
+sudo apt install php-{bcmath,mbstring,xml,curl,zip,gmp,gd,mysql} -y
 ```
 
-check PHP. Should show PHP8.2
+check PHP. Should show PHP8.3
 ```bash
 php -v
+```
+
+increase memory limit of php
+```bash
+sudo nano /etc/php/8.3/fpm/php.ini 
+```
+change the line
+```bash
+memory_limit = 1024M
 ```
 
 install dependencies  
@@ -466,6 +475,12 @@ server {
 Optional: optimize the artisan queque
 For better performance you can install supervisor.
 More info here: https://invoiceninja.github.io/en/self-host-installation/#add-the-cron-job
+
+Disable the old crontab by deleting it. 
+```bash
+sudo -u www-data crontab -e
+```
+
 
 Install and configure supervisor
 ```bash
