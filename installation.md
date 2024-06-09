@@ -464,6 +464,10 @@ server {
 
 
 Optional: optimize the artisan queque
+For better performance you can install supervisor.
+More info here: https://invoiceninja.github.io/en/self-host-installation/#add-the-cron-job
+
+Install and configure supervisor
 ```bash
 sudo apt-get install supervisor  
 cd /etc/supervisor/conf.d  
