@@ -68,7 +68,7 @@ sudo nginx -s reload
 
 Check if php-fpm is running. You should see something like active: active (running)
 ```bash
-sudo systemctl status php8.2-fpm.service
+sudo systemctl status php8.3-fpm.service
 ```
 press q to quit
 
