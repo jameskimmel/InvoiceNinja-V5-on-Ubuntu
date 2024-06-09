@@ -16,6 +16,7 @@ PHP 8.3.7 is the current version for June 2024. Invoice Ninja currently supports
 
 ```bash
 sudo add-apt-repository ppa:ondrej/php -y
+sudo apt update
 ```
 
 install php
