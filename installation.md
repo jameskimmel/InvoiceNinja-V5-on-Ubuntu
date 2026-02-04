@@ -230,15 +230,13 @@ sudo mkdir /usr/share/nginx/invoiceninja && cd /usr/share/nginx/invoiceninja
 Find latest version here https://github.com/invoiceninja/invoiceninja/releases/latest
 Right click the link to the Source Code (zip) file and copy the download link
 
-Download the zip
+Download the file
 ```bash
 sudo wget https://github.com/invoiceninja/invoiceninja/archive/refs/tags/v5.12.53.tar.gz
 ```
 extract and delete it
 ```bash
 sudo tar -xvf invoiceninja.tar.gz && sudo rm invoiceninja.tar.gz 
-sudo tar -xvf v5.12.53.tar.gz && sudo rm v5.12.53.tar.gz 
-
 ```
 
 Copy the example .env 
