@@ -60,7 +60,7 @@ sudo rm /etc/nginx/sites-enabled/default && sudo nginx -s reload
 
 Enable php-fpm at boot and start it
 ```bash
-sudo systemctl enable --now php8.3-fpm
+sudo systemctl reload php8.3-fpm.service && sudo systemctl enable --now php8.3-fpm
 ```
 
 Check if php-fpm is running. You should see something like Active: active (running)
@@ -140,30 +140,25 @@ server {
         root /usr/share/nginx/invoiceninja/public;
         index index.html index.htm index.php;
 
-	charset utf-8;
-	client_max_body_size 100M;
+        charset utf-8;
+        client_max_body_size 100M;
 
+        location = /index.php {
+                include snippets/fastcgi-php.conf;
+                fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        }
 
+        location ~ \.php$ {
+                return 403;
+        }
 
         location / {
-                # First attempt to serve request as file, then
-                # as directory, then fall back to displaying a 404.
-                try_files $uri $uri/ =404;
+                try_files $uri $uri/ /index.php?$query_string;  
         }
 
-        # pass PHP scripts to FastCGI server
-        location ~ \.php$ {
-               include snippets/fastcgi-php.conf;
-               fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        location ~ /\.ht {
+                deny all;
         }
-
-	location = /favicon.ico { 
-		access_log off; log_not_found off; 
-	}
-
-	location = /robots.txt {
-		access_log off; log_not_found off; 
-	}
 
 }
 
@@ -503,6 +498,13 @@ If your browser redirected you to https, you need to setup certbot first before 
 This is it. You are done and hopefully everything is up and running! You can follow the optional steps below if you wan't,
 but a basic local none encrypted version sould be up and running now. 
 
+## Split DNS
+For some stuff, like pictures on invoices, InvoiceNinja will make use urls like ninja.yourdomain.com/picture.
+
+The problem is that  ninja.yourdomain.com might translate a public IPv4 like 80.80.80.1. That public IP won't work from local. So you have to change that by doing a DNS override. 
+
+If you don't know how to do that, this paragraph should help:
+https://github.com/jameskimmel/Nextcloud_Ubuntu/blob/main/nextcloud_behind_NGINX_proxy.md#split-dns-or-hairpin-nat
 
 
 ## Optional: optimize the artisan queque
