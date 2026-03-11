@@ -10,12 +10,12 @@ At the time of writing this, Ubuntu 22.04.3 uses PHP 8.3, which is the supported
 
 We install php
 ```bash
-sudo apt install php-fpm -y
+sudo apt install php8.3-fpm -y
 ```
 
 and some php extensions
 ```bash
-sudo apt install php-{bcmath,mbstring,xml,curl,zip,gmp,gd,mysql} -y
+sudo apt install php8.3-{bcmath,mbstring,xml,curl,zip,gmp,gd,mysql} -y
 ```
 
 check PHP. Should show PHP8.3.6
@@ -25,7 +25,7 @@ php -v
 
 To increase memory limit of php open the file
 ```bash
-sudo nano /etc/php/8.3/fpm/php.ini 
+sudo nano /etc/php/8.3/fpm/php.ini
 ```
 press CTRL + W to search for "memory_limit"
 and change it to 1 or 2 GB. Should look like this:
@@ -38,20 +38,20 @@ press CTRL + X and save it.
 ```bash
 sudo apt install mariadb-server curl git nginx composer -y
 ```
-Now you can open the IP of your host and see the NGINX welcome page. Something like http://192.168.1.10 or http://localhost if you are already on the machine.
-HTTPS like http://192.168.1.10 will not work yet! You need to use http instead of https!
-
-make sure there is no Apache2 running
-```bash
-sudo systemctl stop apache2
-sudo systemctl disable apache2
-```
-you should see "failed" since they do not exist.
 
 Enable nginx at boot and start it
 ```bash
 sudo systemctl enable --now nginx
 ```
+
+Now you can open the IP of your host and see the NGINX welcome page. Something like http://192.168.1.10 or http://localhost if you are already on the machine.
+HTTPS like http://192.168.1.10 will not work yet! You need to use http instead of https!
+
+make sure there is no Apache2 running
+```bash
+sudo systemctl stop apache2 && sudo systemctl disable apache2
+```
+you should see "failed" since they do not exist.
 
 Delete the nginx default site and reload. The welcome page should now be gone
 ```bash
@@ -97,21 +97,21 @@ enter the password you just set
 
 you should see MariaDB [(none)]> on the left of your cursor
 
-create database ninjadb
+create database ninja
 ```mysql
-CREATE SCHEMA `ninjadb` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+CREATE SCHEMA `ninja` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 ```
 You should see Query OK, 1 row affected
 
-create the user ninja and set a Password
+create the user ninja and set a password
 ```mysql
-CREATE USER 'ninja'@'localhost' IDENTIFIED BY 'Password';
+CREATE USER 'ninja'@'localhost' IDENTIFIED BY 'password';
 ```
 You should see Query OK, 0 rows affected
 
-give all permissions for to the local ninja user to access ninjadb
+give all permissions for to the local ninja user to access ninja
 ```mysql
-GRANT ALL PRIVILEGES ON ninjadb.* TO 'ninja'@'localhost';
+GRANT ALL PRIVILEGES ON ninja.* TO 'ninja'@'localhost';
 ```
 You should see Query OK, 0 rows affected
 
@@ -155,7 +155,7 @@ server {
         # pass PHP scripts to FastCGI server
         location ~ \.php$ {
                include snippets/fastcgi-php.conf;
-               fastcgi_pass unix:/run/php/php-fpm.sock;
+               fastcgi_pass unix:/run/php/php8.3-fpm.sock;
         }
 
 	location = /favicon.ico { 
@@ -180,7 +180,7 @@ sudo nginx -t
 ```
 
 ## Optional: Install SnapPDF
-If you wanna use SnapPDF instead of the cloud service phantomPDF, we need some some dependacies. 
+If you wanna use SnapPDF instead of the cloud service phantomPDF, we need some dependencies. 
 More info here https://github.com/beganovich/snappdf#headless-chrome-doesnt-launch-on-unix
 
 ```bash
@@ -275,7 +275,7 @@ DB_CONNECTION=mysql
 MULTI_DB_ENABLED=false
 
 DB_HOST=localhost
-DB_DATABASE=ninjadb
+DB_DATABASE=ninja
 DB_USERNAME=ninja
 # insert the DB password you set
 DB_PASSWORD=password
