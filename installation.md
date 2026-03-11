@@ -244,17 +244,17 @@ sudo cp /usr/share/nginx/invoiceninja/.env.example /usr/share/nginx/invoiceninja
 ```
 Now we need to edit your .env file.
 I added some hashtag comments above the line(s) you need to change.  
-Many things we can setup later in the webgui setup. 
+Some settings we will do later in the webgui setup. 
 
-Generate a random key by running 
+But first, let us generate a random key for your APP_KEY
 ```bash
 openssl rand -base64 32
 ```
-
+copy it and edit the .env file
 ```bash
 sudo nano /usr/share/nginx/invoiceninja/.env
 ```
-
+insert this:
 ```bash
 APP_NAME="Invoice Ninja"
 APP_ENV=production
