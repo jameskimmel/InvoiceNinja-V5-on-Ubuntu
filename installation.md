@@ -55,8 +55,7 @@ you should see "failed" since they do not exist.
 
 Delete the nginx default site and reload. The welcome page should now be gone
 ```bash
-sudo rm /etc/nginx/sites-enabled/default
-sudo nginx -s reload
+sudo rm /etc/nginx/sites-enabled/default && sudo nginx -s reload
 ```
 
 Enable php-fpm at boot and start it
