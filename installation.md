@@ -369,9 +369,9 @@ There are multiple different way on how to run InvoiceNinja
 
 If you don't use https, because you will only use it locally, you don't have to do anything. 
 
-If you want to use InvoiceNinja with a valid cert and possibly even from remote, you should go with options A.
+If you want to use InvoiceNinja with a valid cert and possibly even from remote, you should go with option A.
 
-If you want to use InvoiceNinja with a valid cert behind a NGINX reverse proxy, you should go with options B.
+If you want to use InvoiceNinja with a valid cert behind a NGINX reverse proxy, you should go with option B.
 
 ### Option A: Installing certbot to get a valid cert  
 install snapd  
