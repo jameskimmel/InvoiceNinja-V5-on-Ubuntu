@@ -63,7 +63,6 @@ Check if php-fpm is running. You should see something like Active: active (runni
 ```bash
 sudo systemctl status php8.3-fpm.service
 ```
-press q to quit
 
 ## Database
 enable mariadb and start it 
