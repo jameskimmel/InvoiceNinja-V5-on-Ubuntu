@@ -227,15 +227,15 @@ make install dir
 sudo mkdir /usr/share/nginx/invoiceninja && cd /usr/share/nginx/invoiceninja
 ```
 Find latest version here https://github.com/invoiceninja/invoiceninja/releases/latest
-Right click the link to the Source Code (zip) file and copy the download link
+Right click the link the invoiceninja.tar link and copy the download link
 
 Download the file
 ```bash
-sudo wget https://github.com/invoiceninja/invoiceninja/archive/refs/tags/v5.12.53.tar.gz
+sudo wget https://github.com/invoiceninja/invoiceninja/releases/download/v5.13.1/invoiceninja.tar
 ```
 extract and delete it
 ```bash
-sudo tar -xvf invoiceninja.tar.gz && sudo rm invoiceninja.tar.gz 
+sudo tar -xvf invoiceninja.tar && sudo rm invoiceninja.tar
 ```
 
 Copy the example .env 
@@ -243,8 +243,13 @@ Copy the example .env
 sudo cp /usr/share/nginx/invoiceninja/.env.example /usr/share/nginx/invoiceninja/.env
 ```
 Now we need to edit your .env file.
-For now, you only need to edit one line (or two if you have a reverse proxy like me) 
-Everything else we can setup later in the webgui setup. I added some hashtag comments above the line(s) you need to change.
+I added some hashtag comments above the line(s) you need to change.  
+Many things we can setup later in the webgui setup. 
+
+Generate a random key by running 
+```bash
+openssl rand -base64 32
+```
 
 ```bash
 sudo nano /usr/share/nginx/invoiceninja/.env
@@ -253,19 +258,22 @@ sudo nano /usr/share/nginx/invoiceninja/.env
 ```bash
 APP_NAME="Invoice Ninja"
 APP_ENV=production
-APP_KEY=base64:RR++yx2rJ9kdxbdh3+AmbHLDQu+Q76i++co9Y8ybbno=
+## insert your app key
+APP_KEY=base64:TSMttVrnArwKUlzkHKPYFbNH+pbLBDHdWUWJkp0yTvk=
 APP_DEBUG=false
 
-APP_URL=http://localhost
+# change the app url
+APP_URL=https://ninja.yourdomain.com
 REACT_URL=http://localhost:3001
 
 DB_CONNECTION=mysql
 MULTI_DB_ENABLED=false
 
 DB_HOST=localhost
-DB_DATABASE=ninja
+DB_DATABASE=ninjadb
 DB_USERNAME=ninja
-DB_PASSWORD=ninja
+# insert the DB password you set
+DB_PASSWORD=password
 DB_PORT=3306
 
 DEMO_MODE=false
@@ -287,13 +295,13 @@ REQUIRE_HTTPS=false
 
 GOOGLE_MAPS_API_KEY=
 ERROR_EMAIL=
-# I set this to the IPv4 of my reverse proxy.
-TRUSTED_PROXIES=10.0.25.10
+# If you are running a reverse proxy, add the IP here
+TRUSTED_PROXIES=192.168.0.10
 SCOUT_DRIVER=null
 
 NINJA_ENVIRONMENT=selfhost
 
-# this you need to set to snappdf
+# change this to snappdf
 #options - snappdf / phantom / hosted_ninja
 PDF_GENERATOR=snappdf
 
@@ -356,18 +364,16 @@ reload nginx
 sudo nginx -s reload
 ```
 
+## Decide how you want to run InvoiceNinja
+There are multiple different way on how to run InvoiceNinja
 
-The next steps are very much dependant if you use InvoiceNinja behind a proxy or not or if you only use invoiceninja local without a cert.  
+If you don't use https, because you will only use it locally, you don't have to do anything. 
 
-If you don't use https, you don't have to do anything.  I really can't recommend it though. 
+If you want to use InvoiceNinja with a valid cert and possibly even from remote, you should go with options A.
 
-If you don't use it behind a proxy, you need to install certbot on the InvoiceNinja host. See option 2.
+If you want to use InvoiceNinja with a valid cert behind a NGINX reverse proxy, you should go with options B.
 
-If you use it behind a proxy, you configure certbot on the proxy.
-See how to below.  See option 3.
-
-## Option 2: Installing certbot to get a valid cert  
-
+### Option A: Installing certbot to get a valid cert  
 install snapd  
 ```bash
 sudo apt install snapd
@@ -385,11 +391,11 @@ create a cert
 ```bash
 sudo certbot --nginx
 ```
-this will lead you trough the setup process. If something fails, it is probably because you forgot to set the public dns or your firewall blocks port 80 to certbot
+this will lead you trough the setup process. If something fails, it is probably because you forgot to set the public dns or your firewall blocks port 80 to certbot.  
 Anyway, there are a lot of good tutorials online how to setup certbot.
-Certbot automatically changes your NGINX .conf file to listen on port 443
+Certbot automatically changes your NGINX .conf file to listen on port 443.
 
-## Option 3: running behing a proxy
+### Option 3: running behing a proxy
 if you run invoiceninja behind a proxy, here is a sample config.
 
 ```bash
@@ -418,7 +424,7 @@ server {
 ```
 
 
-
+## Finish the installation
 Visit our http://ipofyourhost/setup address to setup InvoiceNinja  
 
 For URL you set the desired URL or the IP address if you use only local without SSL.    
