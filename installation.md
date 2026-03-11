@@ -59,6 +59,11 @@ sudo rm /etc/nginx/sites-enabled/default
 sudo nginx -s reload
 ```
 
+Enable php-fpm at boot and start it
+```bash
+sudo systemctl enable --now php8.3-fpm
+```
+
 Check if php-fpm is running. You should see something like Active: active (running)
 ```bash
 sudo systemctl status php8.3-fpm.service
@@ -396,14 +401,40 @@ Anyway, there are a lot of good tutorials online how to setup certbot.
 Certbot automatically changes your NGINX .conf file to listen on port 443.
 
 ### Option 3: running behing a proxy
-if you run invoiceninja behind a proxy, here is a sample config.
-
+On the NGXIN reverse proxy, start by creating an empty config site.
 ```bash
+sudo nano /etc/nginx/sites-available/ninja.mydomain.com.conf
+```
+```conf
 server {
-    server_name ninja.domain.com;
-
+    server_name ninja.mydomain.com;
     listen       80;
     listen      [::]:80;
+
+}
+```
+save and exit.
+Enable the site by running:
+```bash
+sudo ln -s /etc/nginx/sites-available/ninja.mydomain.com.conf /etc/nginx/sites-enabled/
+```
+
+create a cert
+```bash
+sudo certbot --nginx
+```
+
+after that, we add the proxy stuff:
+```conf
+server {
+    server_name ninja.mydomain.com;
+
+    listen 443 ssl; # managed by Certbot
+    listen [::]:443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/ninja.mydomain.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/ninja.mydomain.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
 
     # This is important or you will get 413 Server error from the proxy side
     client_max_body_size 100M;
@@ -411,18 +442,40 @@ server {
     location / {
                     proxy_set_header        Host $host;
                     proxy_set_header        X-Real-IP $remote_addr;
-                    proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+                    proxy_set_header        X-Forwarded-For proxy_add_x_forwarded_for; 
                     proxy_set_header        X-Forwarded-Proto $scheme;
                     proxy_buffering         off;
                     proxy_request_buffering off;
                     proxy_pass_header       Server;
                     # Enter the IP or Internal DNS name of the server Invoice Ninja is installed on
-                    proxy_pass              http://10.0.1.2/;
+                    proxy_pass              http://192.168.1.2/;
                     proxy_redirect          off;
                     }
+
+}
+server {
+    if ($host = ninja.mydomain.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    server_name ninja.mydomain.com;
+    listen       80;
+    listen      [::]:80;
+    return 404; # managed by Certbot
+
+
 }
 ```
 
+Test your config
+```bash
+sudo nginx -t
+```
+apply your config
+```bash
+sudo nginx -s reload
+```
 
 ## Finish the installation
 Visit our http://ipofyourhost/setup address to setup InvoiceNinja  
