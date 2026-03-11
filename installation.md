@@ -131,6 +131,7 @@ insert this:
 ```NGINX
 server {
         listen 80 default_server;
+        server_name _;
 
         root /usr/share/nginx/invoiceninja/public;
         index index.html index.htm index.php;
@@ -138,7 +139,7 @@ server {
 	charset utf-8;
 	client_max_body_size 100M;
 
-	server_name _;
+
 
         location / {
                 # First attempt to serve request as file, then
