@@ -1,77 +1,74 @@
-This is a basic tutorial for a default installation of a InvoiceNinja instance on Ubuntu 24.04 LTS
+# This is a basic tutorial for a default installation of a InvoiceNinja instance on Ubuntu 24.04.3 LTS
 
 update and upgrade 
 ```bash
 sudo apt update && sudo apt upgrade -y
 ```
 
-install dependencies  
-At the time of writing this, Ubuntu 22.04 uses PHP 8.1
-Since InvoiceNinja v5.9.0, at least PHP 8.2 is needed. 
+## install PHP  
+At the time of writing this, Ubuntu 22.04.3 uses PHP 8.3, which is the supported PHP version for InvoiceNinja.
 
-We need to add Ondrej PHP Package to get a newer PHP Version.
-PHP 8.3.7 is the current version for June 2024. Invoice Ninja currently supports 8.2 
-
-
-
+We install php
 ```bash
-sudo add-apt-repository ppa:ondrej/php -y
-sudo apt update
+sudo apt install php8.3-fpm -y
 ```
 
-install php
+and some php extensions
 ```bash
-sudo apt install php-fpm -y
+sudo apt install php8.3-{bcmath,mbstring,xml,curl,zip,gmp,gd,mysql} -y
 ```
 
-install php extensions
-```bash
-sudo apt install php-{bcmath,mbstring,xml,curl,zip,gmp,gd,mysql} -y
-```
-
-check PHP. Should show PHP8.3
+check PHP. Should show PHP8.3.6
 ```bash
 php -v
 ```
 
-increase memory limit of php
+To increase memory limit of php open the file
 ```bash
-sudo nano /etc/php/8.3/fpm/php.ini 
+sudo nano /etc/php/8.3/fpm/php.ini
 ```
-change the line
+press CTRL + W to search for "memory_limit"
+and change it to 1 or 2 GB. Should look like this:
 ```bash
-memory_limit = 1024M
+memory_limit = 2G
 ```
+press CTRL + X and save it.
 
-install dependencies  
+## install other dependencies  
 ```bash
 sudo apt install mariadb-server curl git nginx composer -y
 ```
-if we visit http://yourIP , you should see the nginx welcome page. https://yourIP will not work you need to use http instead of https for now!
 
-make sure there is no Apache2 running
-```bash
-sudo systemctl stop apache2
-sudo systemctl disable apache2
-```
-
-enable nginx at boot and also start now
+Enable nginx at boot and start it
 ```bash
 sudo systemctl enable --now nginx
 ```
 
-delete the nginx default site and reload. The welcome page should now be gone
+Now you can open the IP of your host and see the NGINX welcome page. Something like http://192.168.1.10 or http://localhost if you are already on the machine.
+HTTPS like http://192.168.1.10 will not work yet! You need to use http instead of https!
+
+make sure there is no Apache2 running
 ```bash
-sudo rm /etc/nginx/sites-enabled/default
-sudo nginx -s reload
+sudo systemctl stop apache2 && sudo systemctl disable apache2
+```
+you should see "failed" since they do not exist.
+
+Delete the nginx default site and reload. The welcome page should now be gone
+```bash
+sudo rm /etc/nginx/sites-enabled/default && sudo nginx -s reload
 ```
 
-Check if php-fpm is running. You should see something like active: active (running)
+Enable php-fpm at boot and start it
+```bash
+sudo systemctl reload php8.3-fpm.service && sudo systemctl enable --now php8.3-fpm
+```
+
+Check if php-fpm is running. You should see something like Active: active (running)
 ```bash
 sudo systemctl status php8.3-fpm.service
 ```
-press q to quit
 
+## Database
 enable mariadb and start it 
 ```bash
 sudo systemctl enable --now mariadb
@@ -99,21 +96,21 @@ enter the password you just set
 
 you should see MariaDB [(none)]> on the left of your cursor
 
-create database ninjadb
+create database ninja
 ```mysql
-CREATE SCHEMA `ninjadb` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+CREATE SCHEMA `ninja` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 ```
 You should see Query OK, 1 row affected
 
-create the user ninja and set a Password
+create the user ninja and set a password
 ```mysql
-CREATE USER 'ninja'@'localhost' IDENTIFIED BY 'Password';
+CREATE USER 'ninja'@'localhost' IDENTIFIED BY 'password';
 ```
 You should see Query OK, 0 rows affected
 
-give all permissions for to the local ninja user to access ninjadb
+give all permissions for to the local ninja user to access ninja
 ```mysql
-GRANT ALL PRIVILEGES ON ninjadb.* TO 'ninja'@'localhost';
+GRANT ALL PRIVILEGES ON ninja.* TO 'ninja'@'localhost';
 ```
 You should see Query OK, 0 rows affected
 
@@ -127,110 +124,41 @@ exit the db
 ```mysql
 exit
 ```
-You should see Bye
+You should see "Bye"
 
-   
+## NGINX
 create config for webpage
 ```bash
 sudo nano /etc/nginx/sites-available/invoiceninja.conf
 ```
 insert this:
 ```NGINX
-##
-# You should look at the following URL's in order to grasp a solid understanding
-# of Nginx configuration files in order to fully unleash the power of Nginx.
-# https://www.nginx.com/resources/wiki/start/
-# https://www.nginx.com/resources/wiki/start/topics/tutorials/config_pitfalls/
-# https://wiki.debian.org/Nginx/DirectoryStructure
-#
-# In most cases, administrators will remove this file from sites-enabled/ and
-# leave it as reference inside of sites-available where it will continue to be
-# updated by the nginx packaging team.
-#
-# This file will automatically load configuration files provided by other
-# applications, such as Drupal or Wordpress. These applications will be made
-# available underneath a path with that package name, such as /drupal8.
-#
-# Please see /usr/share/doc/nginx-doc/examples/ for more detailed examples.
-##
-
-# Default server configuration
-#
 server {
         listen 80 default_server;
-        listen [::]:80 default_server;
-
-        # SSL configuration
-        #
-        # listen 443 ssl default_server;
-        # listen [::]:443 ssl default_server;
-        #
-        # Note: You should disable gzip for SSL traffic.
-        # See: https://bugs.debian.org/773332
-        #
-        # Read up on ssl_ciphers to ensure a secure configuration.
-        # See: https://bugs.debian.org/765782
-        #
-        # Self signed certs generated by the ssl-cert package
-        # Don't use them in a production server!
-        #
-        # include snippets/snakeoil.conf;
+        server_name _;
 
         root /usr/share/nginx/invoiceninja/public;
-
-
-        # Add index.php to the list if you are using PHP
         index index.html index.htm index.php;
 
-	charset utf-8;
-	client_max_body_size 20M;
+        charset utf-8;
+        client_max_body_size 100M;
 
-	#gzip on;
-	#gzip_types application/javascript application/x-javascript text/javascript text/plain application/xml application/json;
-	#gzip_proxied    no-cache no-store private expired auth;
-	#gzip_min_length 1000;        
+        location = /index.php {
+                include snippets/fastcgi-php.conf;
+                fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        }
 
-	server_name _;
+        location ~ \.php$ {
+                return 403;
+        }
 
         location / {
-                # First attempt to serve request as file, then
-                # as directory, then fall back to displaying a 404.
-                try_files $uri $uri/ =404;
+                try_files $uri $uri/ /index.php?$query_string;  
         }
 
-        # pass PHP scripts to FastCGI server
-        
-        location ~ \.php$ {
-               include snippets/fastcgi-php.conf;
-        
-               # With php-fpm (or other unix sockets):
-               fastcgi_pass unix:/run/php/php-fpm.sock;
-               # With php-cgi (or other tcp sockets):
-        #       fastcgi_pass 127.0.0.1:9000;
-        }
-
-        # deny access to .htaccess files, if Apache's document root
-        # concurs with nginx's one
-        #
         location ~ /\.ht {
-               deny all;
+                deny all;
         }
-
-	location ~* \.pdf$ {
-		add_header Cache-Control no-store;
-	}
-
-	if (!-e $request_filename) {
-		rewrite ^(.+)$ /index.php?q= last;
-	}
-
-	location = /favicon.ico { 
-		access_log off; log_not_found off; 
-	}
-
-	location = /robots.txt {
-		access_log off; log_not_found off; 
-	}
 
 }
 
@@ -245,47 +173,96 @@ Check if syntax of your file is ok
 sudo nginx -t
 ```
 
+## Optional: Install SnapPDF
+If you wanna use SnapPDF instead of the cloud service phantomPDF, we need some dependencies. 
+More info here https://github.com/beganovich/snappdf#headless-chrome-doesnt-launch-on-unix
+
+```bash
+sudo apt install -y \
+  ca-certificates \
+  fonts-liberation \
+  libappindicator3-1 \
+  libasound2t64 \
+  libatk-bridge2.0-0t64 \
+  libatk1.0-0t64 \
+  libc6 \
+  libcairo2 \
+  libcups2t64 \
+  libdbus-1-3 \
+  libexpat1 \
+  libfontconfig1 \
+  libgbm1 \
+  libgcc-s1 \
+  libglib2.0-0t64 \
+  libgtk-3-0t64 \
+  libnspr4 \
+  libnss3 \
+  libpango-1.0-0 \
+  libpangocairo-1.0-0 \
+  libstdc++6 \
+  libx11-6 \
+  libx11-xcb1 \
+  libxcb1 \
+  libxcomposite1 \
+  libxcursor1 \
+  libxdamage1 \
+  libxext6 \
+  libxfixes3 \
+  libxi6 \
+  libxrandr2 \
+  libxrender1 \
+  libxss1 \
+  libxtst6 \
+  lsb-release \
+  wget \
+  xdg-utils \
+  libgbm-dev \
+  libxshmfence-dev
+```
+
+## Install invoiceNinja
 make install dir
 ```bash
 sudo mkdir /usr/share/nginx/invoiceninja && cd /usr/share/nginx/invoiceninja
 ```
-Find latest version here https://github.com/invoiceninja/invoiceninja/releases
-Right click the link to the zip file and copy the download link
+Find latest version here https://github.com/invoiceninja/invoiceninja/releases/latest
+Right click the link the invoiceninja.tar link and copy the download link
 
-Download the zip
+Download the file
 ```bash
-sudo wget https://github.com/invoiceninja/invoiceninja/releases/download/v5.9.1/invoiceninja.zip
+sudo wget https://github.com/invoiceninja/invoiceninja/releases/download/v5.13.1/invoiceninja.tar
 ```
-unzip and remove the zip file
+extract and delete it
 ```bash
-sudo unzip invoiceninja.zip && sudo rm invoiceninja.zip
+sudo tar -xvf invoiceninja.tar && sudo rm invoiceninja.tar
 ```
 
-if you wanna use snappdf instead of the cloud service phantomPDF, we need some
-dependancies for snappdf
-more info https://github.com/beganovich/snappdf#headless-chrome-doesnt-launch-on-unix
-```bash
-sudo apt install ca-certificates fonts-liberation libappindicator3-1 libasound2t64 libatk-bridge2.0-0t64 libatk1.0-0 libc6 libcairo2 libcups2t64 libdbus-1-3 libexpat1 libfontconfig1 libgbm1 libgcc-s1 libglib2.0-0t64 libgtk-3-0t64 libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 lsb-release wget xdg-utils libgbm-dev libxshmfence-dev
-```
 Copy the example .env 
 ```bash
 sudo cp /usr/share/nginx/invoiceninja/.env.example /usr/share/nginx/invoiceninja/.env
 ```
 Now we need to edit your .env file.
-For now, you only need to edit one line (or two if you have a reverse proxy like me) 
-Everything else we can setup later in the webgui setup. I added some hashtag comments above the line(s) you need to change.
+I added some hashtag comments above the line(s) you need to change.  
+Some settings we will do later in the webgui setup. 
 
+But first, let us generate a random key for your APP_KEY
+```bash
+openssl rand -base64 32
+```
+copy it and edit the .env file
 ```bash
 sudo nano /usr/share/nginx/invoiceninja/.env
 ```
-
+insert this:
 ```bash
 APP_NAME="Invoice Ninja"
 APP_ENV=production
-APP_KEY=base64:RR++yx2rJ9kdxbdh3+AmbHLDQu+Q76i++co9Y8ybbno=
+## insert your app key
+APP_KEY=base64:TSMttVrnArwKUlzkHKPYFbNH+pbLBDHdWUWJkp0yTvk=
 APP_DEBUG=false
 
-APP_URL=http://localhost
+# change the app url
+APP_URL=https://ninja.yourdomain.com
 REACT_URL=http://localhost:3001
 
 DB_CONNECTION=mysql
@@ -294,7 +271,8 @@ MULTI_DB_ENABLED=false
 DB_HOST=localhost
 DB_DATABASE=ninja
 DB_USERNAME=ninja
-DB_PASSWORD=ninja
+# insert the DB password you set
+DB_PASSWORD=password
 DB_PORT=3306
 
 DEMO_MODE=false
@@ -306,6 +284,7 @@ QUEUE_CONNECTION=sync
 SESSION_DRIVER=file
 SESSION_LIFETIME=120
 
+MAIL_MAILER=smtp
 REDIS_HOST=127.0.0.1
 REDIS_PASSWORD=null
 REDIS_PORT=6379
@@ -315,12 +294,13 @@ REQUIRE_HTTPS=false
 
 GOOGLE_MAPS_API_KEY=
 ERROR_EMAIL=
-# I set this to the IPv4 of my reverse proxy.
-TRUSTED_PROXIES=10.0.25.10
+# If you are running a reverse proxy, add the IP here
+TRUSTED_PROXIES=192.168.0.10
+SCOUT_DRIVER=null
 
 NINJA_ENVIRONMENT=selfhost
 
-# this you need to set to snappdf
+# change this to snappdf
 #options - snappdf / phantom / hosted_ninja
 PDF_GENERATOR=snappdf
 
@@ -348,6 +328,10 @@ APPLE_REDIRECT_URI=
 NORDIGEN_SECRET_ID=
 NORDIGEN_SECRET_KEY=
 
+GOCARDLESS_CLIENT_ID=
+GOCARDLESS_CLIENT_SECRET=
+
+OPENEXCHANGE_APP_ID=
 ```
 save and exit
 
@@ -370,7 +354,7 @@ enable webpage
 sudo ln -s /etc/nginx/sites-available/invoiceninja.conf /etc/nginx/sites-enabled/
 ```
 
-Check if everythin is good
+Check if everything is good
 ```bash
 sudo nginx -t
 ```
@@ -379,15 +363,116 @@ reload nginx
 sudo nginx -s reload
 ```
 
+## Decide how you want to run InvoiceNinja
+There are multiple different way on how to run InvoiceNinja
 
-The next steps are very much dependant if you use InvoiceNinja behind a proxy or not or if you only use invoiceninja local without a cert.  
+If you don't use https, because you will only use it locally, you don't have to do anything. 
 
-If you don't use https, you don't have to do anything.  
-If you don't use it behind a proxy, you need to install certbot on the InvoiceNinja host.  
-If you use it behind a proxy, you configure certbot on the proxy  
+If you want to use InvoiceNinja with a valid cert and possibly even from remote, you should go with option A.
+
+If you want to use InvoiceNinja with a valid cert behind a NGINX reverse proxy, you should go with option B.
+
+### Option A: Installing certbot to get a valid cert  
+install snapd  
+```bash
+sudo apt install snapd
+```
+update snapd
+```bash
+sudo snap install core
+sudo snap refresh core
+```
+install certbot
+```bash
+sudo snap install --classic certbot
+```
+create a cert
+```bash
+sudo certbot --nginx
+```
+this will lead you trough the setup process. If something fails, it is probably because you forgot to set the public dns or your firewall blocks port 80 to certbot.  
+Anyway, there are a lot of good tutorials online how to setup certbot.
+Certbot automatically changes your NGINX .conf file to listen on port 443.
+
+### Option 3: running behing a proxy
+On the NGXIN reverse proxy, start by creating an empty config site.
+```bash
+sudo nano /etc/nginx/sites-available/ninja.mydomain.com.conf
+```
+```conf
+server {
+    server_name ninja.mydomain.com;
+    listen       80;
+    listen      [::]:80;
+
+}
+```
+save and exit.
+Enable the site by running:
+```bash
+sudo ln -s /etc/nginx/sites-available/ninja.mydomain.com.conf /etc/nginx/sites-enabled/
+```
+
+create a cert
+```bash
+sudo certbot --nginx
+```
+
+after that, we add the proxy stuff:
+```conf
+server {
+    server_name ninja.mydomain.com;
+
+    listen 443 ssl; # managed by Certbot
+    listen [::]:443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/ninja.mydomain.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/ninja.mydomain.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+    # This is important or you will get 413 Server error from the proxy side
+    client_max_body_size 100M;
+
+    location / {
+                    proxy_set_header        Host $host;
+                    proxy_set_header        X-Real-IP $remote_addr;
+                    proxy_set_header        X-Forwarded-For proxy_add_x_forwarded_for; 
+                    proxy_set_header        X-Forwarded-Proto $scheme;
+                    proxy_buffering         off;
+                    proxy_request_buffering off;
+                    proxy_pass_header       Server;
+                    # Enter the IP or Internal DNS name of the server Invoice Ninja is installed on
+                    proxy_pass              http://192.168.1.2/;
+                    proxy_redirect          off;
+                    }
+
+}
+server {
+    if ($host = ninja.mydomain.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
 
 
-visit our http://ipofyourhost/setup address to setup InvoiceNinja  
+    server_name ninja.mydomain.com;
+    listen       80;
+    listen      [::]:80;
+    return 404; # managed by Certbot
+
+
+}
+```
+
+Test your config
+```bash
+sudo nginx -t
+```
+apply your config
+```bash
+sudo nginx -s reload
+```
+
+## Finish the installation
+Visit our http://ipofyourhost/setup address to setup InvoiceNinja  
 
 For URL you set the desired URL or the IP address if you use only local without SSL.    
 HTTPS should be require unless you use a reverse proxy.  
@@ -413,67 +498,16 @@ If your browser redirected you to https, you need to setup certbot first before 
 This is it. You are done and hopefully everything is up and running! You can follow the optional steps below if you wan't,
 but a basic local none encrypted version sould be up and running now. 
 
+## Split DNS
+For some stuff, like pictures on invoices, InvoiceNinja will make use urls like ninja.yourdomain.com/picture.
 
-Optional: Installing certbot to get a valid cert  
+The problem is that  ninja.yourdomain.com might translate a public IPv4 like 80.80.80.1. That public IP won't work from local. So you have to change that by doing a DNS override. 
 
-install snapd  
-```bash
-sudo apt install snapd
-```
-update snapd
-```bash
-sudo snap install core
-sudo snap refresh core
-```
-install certbot
-```bash
-sudo snap install --classic certbot
-```
-create a cert
-```bash
-sudo certbot --nginx
-```
-this will lead you trough the setup process. If something fails, it is probably because you forgot to set the public dns or your firewall blocks port 80 to certbot
-Anyway, there are a lot of good tutorials online how to setup certbot.
-Certbot automatically changes your NGINX .conf file to listen on port 443
-
-if you run invoiceninja behind a proxy, here is a sample config.
-otherwise you can ignore this
-```bash
-server {
-    server_name ninja.domain.com;
-
-    listen       80;
-    listen      [::]:80;
-
-    # This is important or you will get 413 Server error from the proxy side
-    client_max_body_size 20M;
-
-    location / {
-                    proxy_set_header        Host $host;
-                    proxy_set_header        X-Real-IP $remote_addr;
-                    proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
-                    proxy_set_header        X-Forwarded-Proto $scheme;
-                    proxy_buffering         off;
-                    proxy_request_buffering off;
-                    proxy_pass_header       Server;
-                    # Enter the IP or Internal DNS name of the server Invoice Ninja is installed on
-                    proxy_pass              http://10.0.1.2/;
-                    proxy_redirect          off;
-                    #add_header Strict-Transport-Security "max-age=15552000; includeSubDomains" always;
-                    }
+If you don't know how to do that, this paragraph should help:
+https://github.com/jameskimmel/Nextcloud_Ubuntu/blob/main/nextcloud_behind_NGINX_proxy.md#split-dns-or-hairpin-nat
 
 
-
-
-
-}
-
-
-```
-
-
-Optional: optimize the artisan queque
+## Optional: optimize the artisan queque
 For better performance you can install supervisor.
 More info here: https://invoiceninja.github.io/en/self-host-installation/#add-the-cron-job
 
