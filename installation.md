@@ -131,7 +131,6 @@ insert this:
 ```NGINX
 server {
         listen 80 default_server;
-        listen [::]:80 default_server;
 
         root /usr/share/nginx/invoiceninja/public;
         index index.html index.htm index.php;
