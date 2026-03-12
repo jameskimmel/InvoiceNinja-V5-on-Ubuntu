@@ -471,18 +471,27 @@ apply your config
 sudo nginx -s reload
 ```
 
-## Finish the installation
-Visit our http://ipofyourhost/setup address to setup InvoiceNinja  
+## Split DNS
+For some stuff, like pictures on invoices, InvoiceNinja will make use of URLs like ninja.yourdomain.com/picture.
 
-For URL you set the desired URL or the IP address if you use only local without SSL.    
-HTTPS should be require unless you use a reverse proxy.  
+The problem with that is that ninja.yourdomain.com will be answered by a DNS with the a public IPv4 like 80.80.80.1. But that public IP won't work from your local network. So you have to change that by doing a DNS override. 
+The goal of that is that instead of your DNS server answering ninja.yourdomain.com with 80.80.80.1, it should answer it with your local proxy IP 192.168.2.10. Or if you don't use a proxy 192.168.2.2. 
+
+You can achive that with eiter adding a DNS overrride to your DNS server. Since this is not always possible, the alternative is to add an override on the ninja instance and the clients themselves.  
+
+If you don't know how to do that, this paragraph should help:
+https://github.com/jameskimmel/Nextcloud_Ubuntu/blob/main/nextcloud_behind_NGINX_proxy.md#split-dns-or-hairpin-nat
+
+## Finish the installation
+Visit our https://ninja.yourdomain.com/setup address to setup InvoiceNinja  
+If you use it locally without SSL, use http and your IP instead (http://192.168.1.2/setup).    
 Test PDF should show success.  
 
 Insert the database credentials  
 ```bash
 localhost
 3306
-ninjadb
+ninja
 ninja
 ```
 and the password you set during the DB setup. If you just copied my steps, this would be "Password".    
@@ -493,19 +502,8 @@ Create a User Account, agree to the terms and click submit
 Now this could take some time. You should be redirected to the URL you defined earlier.  
 Don't leave the page and have some patience. If the page is just gray, try to disable pihole or any other adblockers.  
 
-If your browser redirected you to https, you need to setup certbot first before you try to login.  
-
 This is it. You are done and hopefully everything is up and running! You can follow the optional steps below if you wan't,
 but a basic local none encrypted version sould be up and running now. 
-
-## Split DNS
-For some stuff, like pictures on invoices, InvoiceNinja will make use urls like ninja.yourdomain.com/picture.
-
-The problem is that  ninja.yourdomain.com might translate a public IPv4 like 80.80.80.1. That public IP won't work from local. So you have to change that by doing a DNS override. 
-
-If you don't know how to do that, this paragraph should help:
-https://github.com/jameskimmel/Nextcloud_Ubuntu/blob/main/nextcloud_behind_NGINX_proxy.md#split-dns-or-hairpin-nat
-
 
 ## Optional: optimize the artisan queque
 For better performance you can install supervisor.
