@@ -58,9 +58,9 @@ Delete the nginx default site and reload. The welcome page should now be gone
 sudo rm /etc/nginx/sites-enabled/default && sudo nginx -s reload
 ```
 
-Enable php-fpm at boot and start it
+Enable php-fpm at boot and restart it
 ```bash
-sudo systemctl reload php8.3-fpm.service && sudo systemctl enable --now php8.3-fpm
+sudo systemctl enable --now php8.3-fpm && sudo systemctl reload php8.3-fpm.service
 ```
 
 Check if php-fpm is running. You should see something like Active: active (running)
@@ -127,7 +127,7 @@ exit
 You should see "Bye"
 
 ## NGINX
-create config for webpage
+create config for webpage. This is the example if you run InvoiceNinja behind a NGINX proxy or locally without encryption.
 ```bash
 sudo nano /etc/nginx/sites-available/invoiceninja.conf
 ```
@@ -165,7 +165,7 @@ server {
 ```
 save and exit
 
-This config example listenes to all server names (because it will be put behind a proxy) but you can set a
+This config example listenes to all server names (because it will be put behind a proxy, or only used locally without encryption). If you don't want that, you can set a
 server name instead of "_". For example you could use ninja.yourdomain.com
 
 Check if syntax of your file is ok
@@ -550,10 +550,13 @@ sudo supervisorctl start invoiceninja-worker:*
 sudo supervisorctl status
 sudo nano /usr/share/nginx/invoiceninja/.env
 ```
-insert this
+and change the linke QUEUE_CONNECTION to this
 ```bash
 QUEUE_CONNECTION=database
-
+```
+save and exit.
+Run
+```bash
 cd /usr/share/nginx/invoiceninja/
 sudo -u www-data php artisan optimize
 sudo -u www-data php artisan queue:restart
