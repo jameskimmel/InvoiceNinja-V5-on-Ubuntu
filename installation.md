@@ -222,7 +222,7 @@ insert this:
 ```bash
 APP_NAME="Invoice Ninja"
 APP_ENV=production
-## change it to the random key we generated earlier
+#change it to the random key we generated earlier
 APP_KEY=base64:TSMttVrnArwKUlzkHKPYFbNH+pbLBDHdWUWJkp0yTvk=
 APP_DEBUG=false
 
@@ -257,16 +257,17 @@ REQUIRE_HTTPS=false
 
 GOOGLE_MAPS_API_KEY=
 ERROR_EMAIL=
-# If you are running a reverse proxy, add the IP here
+#If you are running a reverse proxy, add the IP here
 TRUSTED_PROXIES=192.168.1.10
 SCOUT_DRIVER=null
 
 NINJA_ENVIRONMENT=selfhost
 
-# change this your PDF creator
+#change this your PDF creator
 #options - snappdf / phantom / hosted_ninja
 PDF_GENERATOR=phantom
-# if you go with phantom, insert the API key from the webGUI here
+#if you go with phantom, insert the API key from the webGUI here. 
+#The secret below should not be needed
 PHANTOMJS_KEY='yourAPIKey'
 PHANTOMJS_SECRET=secret
 
@@ -446,11 +447,10 @@ If you don't know how to do that, this paragraph should help:
 https://github.com/jameskimmel/Nextcloud_Ubuntu/blob/main/nextcloud_behind_NGINX_proxy.md#split-dns-or-hairpin-nat
 
 ## Finish the installation
-Visit our https://ninja.yourdomain.com/setup address to setup InvoiceNinja  
-If you use it locally without SSL, use http and your IP instead (http://192.168.1.2/setup).    
-Test PDF should show success.  
+Visit our https://ninja.yourdomain.com/setup address to setup InvoiceNinja.    
+If you use it locally without SSL, use http and your IP instead (http://192.168.1.2/setup).  
 
-If you did not make any changes to the DB settings, you only need to insert 'ninja' as password and can click on 'Test connection'.
+If you did not make any changes to the DB settings, you can click on 'Test connection' and it should show `Success!`
 
 Create a User Account, agree to the terms and click submit.  
 Now this could take some time. You should be redirected to the URL you defined earlier.  
