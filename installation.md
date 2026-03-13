@@ -459,7 +459,7 @@ Don't leave the page and have some patience. If the page is just gray, try to di
 This is it. You are done and hopefully everything is up and running!
 
 ## Optional: optimize the artisan queque
-For better performance you can install supervisor. Used to work in the past, but currently has some errors. Use it only if you are willing to hunt down bugs.
+For better performance you can install supervisor.  
 More info here: https://invoiceninja.github.io/en/self-host-installation/#add-the-cron-job
 
 Disable the old crontab by deleting it. 
@@ -471,7 +471,6 @@ sudo -u www-data crontab -e
 Install and configure supervisor
 ```bash
 sudo apt-get install supervisor  
-cd /etc/supervisor/conf.d  
 cd /etc/supervisor/conf.d  
 sudo nano invoiceninja-worker.conf
 ```
@@ -492,24 +491,15 @@ stopwaitsecs=3600
 ```
 Then do
 ```bash
-cd /var/log
-sudo touch invoiceninja-worker.log
-sudo chown www-data:www-data invoiceninja-worker.log
-sudo supervisorctl reread
-sudo supervisorctl update
-sudo supervisorctl start invoiceninja-worker:*
-sudo supervisorctl status
-sudo nano /usr/share/nginx/invoiceninja/.env
+cd /var/log && sudo touch invoiceninja-worker.log && sudo chown www-data:www-data invoiceninja-worker.log && sudo supervisorctl reread && sudo supervisorctl update && sudo supervisorctl start invoiceninja-worker:* && sudo supervisorctl status && sudo nano /usr/share/nginx/invoiceninja/.env
 ```
-and change the linke QUEUE_CONNECTION to this
+and change the linke QUEUE_CONNECTION from `sync` to `database`
 ```bash
 QUEUE_CONNECTION=database
 ```
 save and exit.
 Run
 ```bash
-cd /usr/share/nginx/invoiceninja/
-sudo -u www-data php artisan optimize
-sudo -u www-data php artisan queue:restart
+cd /usr/share/nginx/invoiceninja/ && sudo -u www-data php artisan optimize && sudo -u www-data php artisan queue:restart
 ```
 Done :)
