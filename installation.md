@@ -313,7 +313,7 @@ insert this at the end:
 ```
 save and exit
 
-enable webpage:
+enable the webpage:
 ```bash
 sudo ln -s /etc/nginx/sites-available/invoiceninja.conf /etc/nginx/sites-enabled/
 ```
@@ -421,8 +421,6 @@ server {
     listen       80;
     listen      [::]:80;
     return 404; # managed by Certbot
-
-
 }
 ```
 
@@ -493,7 +491,7 @@ redirect_stderr=true
 stdout_logfile=/var/log/invoiceninja-worker.log
 stopwaitsecs=3600
 ```
-Then do
+Then run:
 ```bash
 cd /var/log && sudo touch invoiceninja-worker.log && sudo chown www-data:www-data invoiceninja-worker.log && sudo supervisorctl reread && sudo supervisorctl update && sudo supervisorctl start invoiceninja-worker:* && sudo supervisorctl status && sudo nano /usr/share/nginx/invoiceninja/.env
 ```
