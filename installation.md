@@ -17,7 +17,7 @@ To increase memory limit of php, open the ini:
 ```bash
 sudo nano /etc/php/8.3/fpm/php.ini
 ```
-press CTRL + W to search for "memory_limit"
+press `CTRL + W` to search for `memory_limit`
 and change it to 1 or 2 GB. Should look like this:
 ```bash
 memory_limit = 2G
