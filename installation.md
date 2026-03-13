@@ -10,8 +10,9 @@ At the time of writing this, Ubuntu 22.04.3 uses PHP 8.3, which is not the lates
 
 That is why we add the Ondřej Surý repositories:
 ```bash
-sudo add-apt-repository ppa:ondrej/php && sudo add-apt-repository ppa:ondrej/nginx && sudo apt update
+sudo add-apt-repository ppa:ondrej/php && sudo add-apt-repository ppa:ondrej/nginx && sudo apt update && sudo apt upgrade
 ```
+you need to press enter twice to add them.  
 
 We install php8.4-fpm and some extensions:
 ```bash
@@ -20,7 +21,7 @@ sudo apt install php8.4-{bcmath,gmp,gd,mbstring,xml,curl,zip,mysql,fpm,imagick,s
 
 To increase memory limit of php, open the ini:
 ```bash
-sudo nano /etc/php/8.3/fpm/php.ini
+sudo nano /etc/php/8.4/fpm/php.ini
 ```
 press `CTRL + W` to search for `memory_limit`
 and change it to 1 or 2 GB. Should look like this:
@@ -31,7 +32,7 @@ press `CTRL + X` and save it with `Y`.
 
 Reload php-fpm to apply the change:
 ```bash
-sudo systemctl reload php8.3-fpm.service
+sudo systemctl reload php8.4-fpm.service
 ```
 
 ## install other dependencies  
@@ -39,9 +40,9 @@ sudo systemctl reload php8.3-fpm.service
 sudo apt install mariadb-server curl git nginx composer -y
 ```
 
-Enable nginx, mariadb and php8.3-fpm at boot:
+Enable nginx, mariadb and php8.4-fpm at boot:
 ```bash
-sudo systemctl enable --now nginx mariadb php8.3-fpm 
+sudo systemctl enable --now nginx mariadb php8.4-fpm 
 ```
 
 Make sure there is no Apache2 running:
@@ -117,7 +118,7 @@ server {
 
         location = /index.php {
                 include snippets/fastcgi-php.conf;
-                fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+                fastcgi_pass unix:/run/php/php8.4-fpm.sock;
         }
 
         location ~ \.php$ {
