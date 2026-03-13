@@ -1,6 +1,6 @@
 # This is a basic tutorial for a default installation of a InvoiceNinja instance on Ubuntu 24.04.3 LTS
 
-update and upgrade: 
+Make sure we are up to date: 
 ```bash
 sudo apt update && sudo apt upgrade -y
 ```
@@ -10,7 +10,7 @@ At the time of writing this, Ubuntu 22.04.3 uses PHP 8.3, which is the supported
 
 We install php-fpm and some extensions:
 ```bash
-sudo apt install php8.3-{php8.3-fpm,bcmath,mbstring,xml,curl,zip,gmp,gd,mysql,intl} -y
+sudo apt install php8.3-{fpm,bcmath,mbstring,xml,curl,zip,gmp,gd,mysql,intl} -y
 ```
 
 To increase memory limit of php, open the ini:
