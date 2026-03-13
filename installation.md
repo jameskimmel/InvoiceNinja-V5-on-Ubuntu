@@ -39,13 +39,13 @@ Enable nginx, mariadb and php8.3-fpm at boot:
 sudo systemctl enable --now nginx mariadb php8.3-fpm 
 ```
 
-make sure there is no Apache2 running:
+Make sure there is no Apache2 running:
 ```bash
 sudo systemctl stop apache2 && sudo systemctl disable apache2
 ```
-you should see "failed" since they do not exist.
+you should see `Failed to stop apache2.service` since it does not exist.
 
-Now you can open the IP of your host and see the NGINX welcome page. Something like http://192.168.1.10 or http://localhost if you are already on the machine.
+You should now be able to see the NGINX welcome page in your browser by visting http://192.168.1.10 or whatever your IP is.
 HTTPS like https://192.168.1.10 will not work yet! You need to use http instead of https!
 
 Delete the nginx default site and reload: 
@@ -126,12 +126,11 @@ server {
         location ~ /\.ht {
                 deny all;
         }
-
 }
 ```
 save and exit.
 
-Check if syntax of your file is ok
+Check if syntax of your file is good:
 ```bash
 sudo nginx -t
 ```
@@ -223,7 +222,7 @@ insert this:
 ```bash
 APP_NAME="Invoice Ninja"
 APP_ENV=production
-## insert your app key
+## change it to the random key we generated earlier
 APP_KEY=base64:TSMttVrnArwKUlzkHKPYFbNH+pbLBDHdWUWJkp0yTvk=
 APP_DEBUG=false
 
