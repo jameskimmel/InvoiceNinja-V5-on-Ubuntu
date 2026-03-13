@@ -1,6 +1,6 @@
 # This is a basic tutorial for a default installation of a InvoiceNinja instance on Ubuntu 24.04.3 LTS
 
-update and upgrade 
+update and upgrade: 
 ```bash
 sudo apt update && sudo apt upgrade -y
 ```
@@ -8,22 +8,23 @@ sudo apt update && sudo apt upgrade -y
 ## install PHP  
 At the time of writing this, Ubuntu 22.04.3 uses PHP 8.3, which is the supported PHP version for InvoiceNinja.
 
-We install php
+We install php:
 ```bash
 sudo apt install php8.3-fpm -y
 ```
 
-and some php extensions
+and some php extensions:
 ```bash
-sudo apt install php8.3-{bcmath,mbstring,xml,curl,zip,gmp,gd,mysql} -y
+sudo apt install php8.3-{bcmath,mbstring,xml,curl,zip,gmp,gd,mysql,intl} -y
 ```
 
-check PHP. Should show PHP8.3.6
+check PHP:
 ```bash
 php -v
 ```
+Should show PHP8.3.6
 
-To increase memory limit of php open the file
+To increase memory limit of php, open the ini:
 ```bash
 sudo nano /etc/php/8.3/fpm/php.ini
 ```
@@ -32,51 +33,44 @@ and change it to 1 or 2 GB. Should look like this:
 ```bash
 memory_limit = 2G
 ```
-press CTRL + X and save it.
+press `CTRL + X` and save it with `Y`.
+
+Reload php-fpm to apply the change:
+```bash
+sudo systemctl reload php8.3-fpm.service
+```
 
 ## install other dependencies  
 ```bash
 sudo apt install mariadb-server curl git nginx composer -y
 ```
 
-Enable nginx at boot and start it
+Enable nginx, mariadb and php8.3-fpm at boot:
 ```bash
-sudo systemctl enable --now nginx
+sudo systemctl enable --now nginx mariadb php8.3-fpm 
 ```
 
-Now you can open the IP of your host and see the NGINX welcome page. Something like http://192.168.1.10 or http://localhost if you are already on the machine.
-HTTPS like http://192.168.1.10 will not work yet! You need to use http instead of https!
-
-make sure there is no Apache2 running
+make sure there is no Apache2 running:
 ```bash
 sudo systemctl stop apache2 && sudo systemctl disable apache2
 ```
 you should see "failed" since they do not exist.
 
-Delete the nginx default site and reload. The welcome page should now be gone
+Now you can open the IP of your host and see the NGINX welcome page. Something like http://192.168.1.10 or http://localhost if you are already on the machine.
+HTTPS like https://192.168.1.10 will not work yet! You need to use http instead of https!
+
+Delete the nginx default site and reload: 
 ```bash
 sudo rm /etc/nginx/sites-enabled/default && sudo nginx -s reload
 ```
-
-Enable php-fpm at boot and restart it
-```bash
-sudo systemctl enable --now php8.3-fpm && sudo systemctl reload php8.3-fpm.service
-```
-
-Check if php-fpm is running. You should see something like Active: active (running)
-```bash
-sudo systemctl status php8.3-fpm.service
-```
+The welcome page should now be gone.
 
 ## Database
-enable mariadb and start it 
-```bash
-sudo systemctl enable --now mariadb
-```
-This command will take you through a guided wizard to initialize the SQL database. Use default values written in capital letters
+This command will take you through a guided wizard to secure MariaDB:
 ```bash
 sudo mysql_secure_installation
 ```
+We mostly use the default values by just pressing Enter. It goes like this:
 Enter, 
 Enter, 
 Enter,
@@ -86,48 +80,32 @@ Enter,
 Enter, 
 Enter, 
 Enter. 
-You should see "Thanks for using MariaDB"
+You should see "Thanks for using MariaDB".
 
-login to the database
+login to MariaDB:
 ```bash
 sudo mysql -u root -p
 ```
-enter the password you just set
+enter the root password you just set.
 
-you should see MariaDB [(none)]> on the left of your cursor
+You should see `MariaDB [(none)]>` on the left of your cursor.
+We now create the DB, the DB user and a password. You can adjust the names and password however you like. If you do, remember your changes, since you will need this information later on for the setup. 
 
-create database ninja
+Insert this:
 ```mysql
-CREATE SCHEMA `ninja` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
-```
-You should see Query OK, 1 row affected
-
-create the user ninja and set a password
-```mysql
-CREATE USER 'ninja'@'localhost' IDENTIFIED BY 'password';
-```
-You should see Query OK, 0 rows affected
-
-give all permissions for to the local ninja user to access ninja
-```mysql
-GRANT ALL PRIVILEGES ON ninja.* TO 'ninja'@'localhost';
-```
-You should see Query OK, 0 rows affected
-
-reload privileges
-```mysql
+CREATE SCHEMA `db-ninja-01` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+CREATE USER 'ninja'@'localhost' IDENTIFIED BY 'ninja';
+GRANT ALL PRIVILEGES ON `db-ninja-01`.* TO 'ninja'@'localhost';
 FLUSH PRIVILEGES;
-```
-You should see Query OK, 0 rows affected
-
-exit the db
+```        
+press enter to run the last line and then exit the db:
 ```mysql
 exit
 ```
-You should see "Bye"
+You should see `Bye`.
 
 ## NGINX
-create config for webpage. This is the example if you run InvoiceNinja behind a NGINX proxy or locally without encryption.
+create config for webpage. This is the example if you run InvoiceNinja behind a NGINX proxy or locally without encryption. If you want to publish InvoiceNinja without a proxy, you would need to get a valid cert with certbot and adjust the server_name.  
 ```bash
 sudo nano /etc/nginx/sites-available/invoiceninja.conf
 ```
@@ -161,20 +139,23 @@ server {
         }
 
 }
-
 ```
-save and exit
-
-This config example listenes to all server names (because it will be put behind a proxy, or only used locally without encryption). If you don't want that, you can set a
-server name instead of "_". For example you could use ninja.yourdomain.com
+save and exit.
 
 Check if syntax of your file is ok
 ```bash
 sudo nginx -t
 ```
+## PDF generation
+There are multiple options to generate PDFs. One is to use snappdf which chromium to create PDFs locally, the other simpler option is to use phantomjscloud.com. You get 500 PDFs a day for free. Downside is that you have relay on a third party (privacy). Decide which one you want to use. 
 
-## Optional: Install SnapPDF
-If you wanna use SnapPDF instead of the cloud service phantomPDF, we need some dependencies. 
+### phantomjscloud
+For phantomjscloud to work, you need a working an public InvoiceNinja installation. Local only won't work. Go to https://phantomjscloud.com/index.html and create an account. 
+In your dashboard, you will see an API Key. 
+
+### SnapPDF
+As of today, this current implementation worked in the past, but is for some reason now broken. If you want to use it, you will have to hunt down bugs.  
+We need some dependencies. 
 More info here https://github.com/beganovich/snappdf#headless-chrome-doesnt-launch-on-unix
 
 ```bash
@@ -237,18 +218,14 @@ extract and delete it
 sudo tar -xvf invoiceninja.tar && sudo rm invoiceninja.tar
 ```
 
-Copy the example .env 
-```bash
-sudo cp /usr/share/nginx/invoiceninja/.env.example /usr/share/nginx/invoiceninja/.env
-```
-Now we need to edit your .env file.
-I added some hashtag comments above the line(s) you need to change.  
-Some settings we will do later in the webgui setup. 
-
-But first, let us generate a random key for your APP_KEY
+We generate a random key, that we use later:
 ```bash
 openssl rand -base64 32
 ```
+
+Now we need to edit your .env file.
+I added some hashtag comments above the line(s) you need to change.  
+
 copy it and edit the .env file
 ```bash
 sudo nano /usr/share/nginx/invoiceninja/.env
@@ -261,8 +238,7 @@ APP_ENV=production
 APP_KEY=base64:TSMttVrnArwKUlzkHKPYFbNH+pbLBDHdWUWJkp0yTvk=
 APP_DEBUG=false
 
-# change the app url
-APP_URL=https://ninja.yourdomain.com
+APP_URL=http://localhost
 REACT_URL=http://localhost:3001
 
 DB_CONNECTION=mysql
@@ -271,8 +247,7 @@ MULTI_DB_ENABLED=false
 DB_HOST=localhost
 DB_DATABASE=ninja
 DB_USERNAME=ninja
-# insert the DB password you set
-DB_PASSWORD=password
+DB_PASSWORD=ninja
 DB_PORT=3306
 
 DEMO_MODE=false
@@ -295,16 +270,16 @@ REQUIRE_HTTPS=false
 GOOGLE_MAPS_API_KEY=
 ERROR_EMAIL=
 # If you are running a reverse proxy, add the IP here
-TRUSTED_PROXIES=192.168.0.10
+TRUSTED_PROXIES=192.168.1.10
 SCOUT_DRIVER=null
 
 NINJA_ENVIRONMENT=selfhost
 
-# change this to snappdf
+# change this your PDF creator
 #options - snappdf / phantom / hosted_ninja
-PDF_GENERATOR=snappdf
-
-PHANTOMJS_KEY='a-demo-key-with-low-quota-per-ip-address'
+PDF_GENERATOR=phantom
+# if you go with phantom, insert the API key from the webGUI here
+PHANTOMJS_KEY='yourAPIKey'
 PHANTOMJS_SECRET=secret
 
 UPDATE_SECRET=secret
@@ -335,11 +310,11 @@ OPENEXCHANGE_APP_ID=
 ```
 save and exit
 
-set permissions to the nginx user
+set permissions to the nginx user:
 ```bash
 sudo chown -R www-data:www-data /usr/share/nginx/invoiceninja
 ```
-edit crontab to run Laravel Scheduler every minute
+edit crontab to run Laravel Scheduler every minute:
 ```bash
 sudo -u www-data crontab -e
 ```
@@ -349,16 +324,16 @@ insert this at the end:
 ```
 save and exit
 
-enable webpage
+enable webpage:
 ```bash
 sudo ln -s /etc/nginx/sites-available/invoiceninja.conf /etc/nginx/sites-enabled/
 ```
 
-Check if everything is good
+Check if the NGINX config is good:
 ```bash
 sudo nginx -t
 ```
-reload nginx
+reload nginx:
 ```bash
 sudo nginx -s reload
 ```
@@ -366,7 +341,7 @@ sudo nginx -s reload
 ## Decide how you want to run InvoiceNinja
 There are multiple different way on how to run InvoiceNinja
 
-If you don't use https, because you will only use it locally, you don't have to do anything. 
+If you only use it locally without https, you don't have to do anything. 
 
 If you want to use InvoiceNinja with a valid cert and possibly even from remote, you should go with option A.
 
@@ -394,7 +369,7 @@ this will lead you trough the setup process. If something fails, it is probably 
 Anyway, there are a lot of good tutorials online how to setup certbot.
 Certbot automatically changes your NGINX .conf file to listen on port 443.
 
-### Option 3: running behing a proxy
+### Option B: running behind a proxy
 On the NGXIN reverse proxy, start by creating an empty config site.
 ```bash
 sudo nano /etc/nginx/sites-available/ninja.mydomain.com.conf
@@ -487,26 +462,16 @@ Visit our https://ninja.yourdomain.com/setup address to setup InvoiceNinja
 If you use it locally without SSL, use http and your IP instead (http://192.168.1.2/setup).    
 Test PDF should show success.  
 
-Insert the database credentials  
-```bash
-localhost
-3306
-ninja
-ninja
-```
-and the password you set during the DB setup. If you just copied my steps, this would be "Password".    
+If you did not make any changes to the DB settings, you only need to insert 'ninja' as password and can click on 'Test connection'.
 
-Test PDF should show success.  
-
-Create a User Account, agree to the terms and click submit  
+Create a User Account, agree to the terms and click submit.  
 Now this could take some time. You should be redirected to the URL you defined earlier.  
 Don't leave the page and have some patience. If the page is just gray, try to disable pihole or any other adblockers.  
 
-This is it. You are done and hopefully everything is up and running! You can follow the optional steps below if you wan't,
-but a basic local none encrypted version sould be up and running now. 
+This is it. You are done and hopefully everything is up and running!
 
 ## Optional: optimize the artisan queque
-For better performance you can install supervisor.
+For better performance you can install supervisor. Used to work in the past, but currently has some errors. Use it only if you are willing to hunt down bugs.
 More info here: https://invoiceninja.github.io/en/self-host-installation/#add-the-cron-job
 
 Disable the old crontab by deleting it. 
