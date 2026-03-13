@@ -6,11 +6,16 @@ sudo apt update && sudo apt upgrade -y
 ```
 
 ## install PHP  
-At the time of writing this, Ubuntu 22.04.3 uses PHP 8.3, which is the supported PHP version for InvoiceNinja.
+At the time of writing this, Ubuntu 22.04.3 uses PHP 8.3, which is not the latest supported PHP version for InvoiceNinja.
 
-We install php-fpm and some extensions:
+That is why we add the Ondřej Surý repositories:
 ```bash
-sudo apt install php8.3-{fpm,bcmath,mbstring,xml,curl,zip,gmp,gd,mysql,intl} -y
+sudo add-apt-repository ppa:ondrej/php && sudo add-apt-repository ppa:ondrej/nginx && sudo apt update
+```
+
+We install php8.4-fpm and some extensions:
+```bash
+sudo apt install php8.4-{bcmath,gmp,gd,mbstring,xml,curl,zip,mysql,fpm,imagick,soap,common,intl} -y
 ```
 
 To increase memory limit of php, open the ini:
