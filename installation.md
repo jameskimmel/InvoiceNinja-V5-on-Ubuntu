@@ -451,6 +451,12 @@ If you don't know how to do that, this paragraph should help:
 https://github.com/jameskimmel/Nextcloud_Ubuntu/blob/main/nextcloud_behind_NGINX_proxy.md#split-dns-or-hairpin-nat
 
 ## Finish the installation
+
+Run these commands to optimize:
+```bash
+cd /usr/share/nginx/invoiceninja/ && sudo -u www-data php artisan optimize && sudo -u www-data php artisan optimize:clear
+```
+
 Visit our https://ninja.yourdomain.com/setup address to setup InvoiceNinja.    
 If you use it locally without SSL, use http and your IP instead (http://192.168.1.2/setup).  
 
