@@ -456,6 +456,11 @@ Create a User Account, agree to the terms and click submit.
 Now this could take some time. You should be redirected to the URL you defined earlier.  
 Don't leave the page and have some patience. If the page is just gray, try to disable pihole or any other adblockers.  
 
+Run these commands to optimize:
+```bash
+cd /usr/share/nginx/invoiceninja/ && sudo -u www-data php artisan optimize && sudo -u www-data php artisan optimize:clear
+```
+
 This is it. You are done and hopefully everything is up and running!
 
 ## Optional: optimize the artisan queque
@@ -466,7 +471,6 @@ Disable the old crontab by deleting it.
 ```bash
 sudo -u www-data crontab -e
 ```
-
 
 Install and configure supervisor
 ```bash
@@ -498,8 +502,9 @@ and change the linke QUEUE_CONNECTION from `sync` to `database`
 QUEUE_CONNECTION=database
 ```
 save and exit.
-Run
+
+run:
 ```bash
-cd /usr/share/nginx/invoiceninja/ && sudo -u www-data php artisan optimize && sudo -u www-data php artisan queue:restart
+cd /usr/share/nginx/invoiceninja/ && sudo -u www-data php artisan optimize && sudo -u www-data php artisan optimize:clear && sudo -u www-data php artisan queue:restart
 ```
 Done :)
